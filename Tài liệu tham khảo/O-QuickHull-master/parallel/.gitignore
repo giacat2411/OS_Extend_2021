@@ -1,0 +1,16 @@
+.vscode
+__pycache__
+*.vs
+*.sln
+*.lib
+*.ipdb
+*.lib
+*.pdb
+*.iobj
+*.tlog
+*.obj
+*.recipe
+*.log
+*.zip
+playground
+*.vcxproj*
