@@ -9,58 +9,45 @@
 using namespace std;
 
 // Class bieu diem diem phang
-class Point{
+class Point
+{
     float x, y;
-    public:
-    Point(){
-        x = 0;
-        y = 0;
-    }
 
-    Point(float x, float y){
-        this->x = x;
-        this->y = y;
-    }
+public:
+    Point()  { x = 0; y = 0; }
 
-    float get_x(){
-        return x;
-    }
+    Point(float x, float y) { this->x = x; this->y = y; }
 
-    float get_y(){
-        return y;
-    }
+    float get_x() { return x; }
 
-    void set_x(float x){
-        this->x = x;
-    }
+    float get_y() { return y; }
 
-    void set_y(float y){
-        this->y = y;
-    }
+    void set_x(float x) { this->x = x; }
+
+    void set_y(float y) { this->y = y; }
 
     // Diem co nam trong duong truc giao truc tiep qua a b hay khong ?
     // Nam trong -> a.x < x < b.x va a.y < y < b.y
-    bool is_inside(Point a, Point b){
+    bool is_inside(Point a, Point b) {
         float min_x = min(a.x, b.x);
         float max_x = max(a.x, b.x);
         float min_y = min(a.y, b.y);
         float max_y = max(a.y, b.y);
 
-        if ((min(a.x, b.x) < this->x) && (max(a.x,b.x) > this->x)
-            && (min(a.y, b.y) < this->y) && (max(a.y, b.y) > this->y))
-        return true;
+        if ((min(a.x, b.x) < this->x) && (max(a.x, b.x) > this->x) && (min(a.y, b.y) < this->y) && (max(a.y, b.y) > this->y))
+            return true;
         return false;
     }
 
-    void print_Point(){
-        cout<<"("<<this->x<<","<<this->y<<") ";
+    void print_Point() {
+        cout << "(" << this->x << "," << this->y << ") ";
     }
 
-    bool operator==(Point other){
-        return ((abs(x - other.x) == 0) && (abs(y - other.y)) == 0);
+    bool operator==(Point other) {
+        return ((abs(x - other.x) < 0.01) && (abs(y - other.y)) < 0.01);
     }
 
-    bool operator!=(Point other){
+    bool operator!=(Point other) {
         return ((x != other.x) || (y != other.y));
     }
 };
@@ -68,25 +55,29 @@ class Point{
 // Chuyen mot xau thanh cap diem x y
 // Vd: Input = "3.4, 2.7"
 // Output: (Point)(3.4;2.7)
-Point to_Point(string line){
+Point to_Point(string line)
+{
     int i = 0;
     string x, y;
     float to_x, to_y;
 
     x = y = "";
 
-    while (line[i] != ','){
+    while (line[i] != ',')
+    {
         x += line[i];
         i++;
     }
 
     i++;
-    
-    for(int j = i; j < line.length(); j++)
+
+    for (int j = i; j < line.length(); j++)
         y += line[j];
-        
-    while (x.find(' ') != -1) x.erase(x.begin() + x.find(' '));
-    while (y.find(' ') != -1) y.erase(y.begin() + y.find(' '));
+
+    while (x.find(' ') != -1)
+        x.erase(x.begin() + x.find(' '));
+    while (y.find(' ') != -1)
+        y.erase(y.begin() + y.find(' '));
 
     to_x = stof(x);
     to_y = stof(y);
@@ -96,170 +87,109 @@ Point to_Point(string line){
     return convert;
 }
 
-// Tim diem highest leftmost
-Point hi_le(vector<Point> points){
-    vector<Point> leftmost;
-
-    float min_x = points[0].get_x();
-
-    for (int i = 1; i < points.size(); i++)
-        if (points[i].get_x() < min_x) min_x = points[i].get_x();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_x() == min_x) leftmost.push_back(points[i]);
-
-    Point highest = leftmost[0];
-
-    for (int i = 1; i < leftmost.size(); i++)
-        if (leftmost[i].get_y() > highest.get_y()) highest = leftmost[i];
-    
-    return highest;
+float square_distance(Point p1, Point p2)
+{
+    return float(pow(p1.get_x() - p2.get_x(), 2) + pow(p1.get_y() - p2.get_y(), 2));
 }
 
-// Tim diem leftmost highest
-Point le_hi(vector<Point> points){
-    vector<Point> highest;
-
-    float max_y = points[0].get_y();
+Point max_distance(vector<Point> points, Point root)
+{
+    Point max = points[0];
+    float _max_distance = square_distance(points[0], root);
 
     for (int i = 1; i < points.size(); i++)
-        if (points[i].get_y() > max_y) max_y = points[i].get_y();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_y() == max_y) highest.push_back(points[i]);
-
-    Point leftmost = highest[0];
-
-    for (int i = 1; i < highest.size(); i++)
-        if (highest[i].get_x() < leftmost.get_x()) leftmost = highest[i];
-    
-    return leftmost;
+    {
+        float distance = square_distance(points[i], root);
+        if (distance > _max_distance)
+        {
+            _max_distance = distance;
+            max = points[i];
+        }
+    }
+    return max;
 }
 
-// Tim diem lowest leftmost
-Point lo_le(vector<Point> points){
-    vector<Point> leftmost;
+// Tim 8 diem cuc
+// Array[0]: highest-leftmost; Array[1]: leftmost-highest
+// Array[2]: lowest-leftmost; Array[3]: leftmost-lowest
+// Array[4]: lowest-rightmost; Array[5]: rightmost-lowest
+// Array[6]: highest-rightmost; Array[7]: rightmost-highest
+vector<Point> _8_extreme_point(vector<Point> points)
+{
+    vector<Point> _8_extreme;
+    for (int i = 0; i < 8; i++)
+        _8_extreme.push_back(points[0]);
 
-    float min_x = points[0].get_x();
-
-    for (int i = 1; i < points.size(); i++)
-        if (points[i].get_x() < min_x) min_x = points[i].get_x();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_x() == min_x) leftmost.push_back(points[i]);
-
-    Point lowest = leftmost[0];
-
-    for (int i = 1; i < leftmost.size(); i++)
-        if (leftmost[i].get_y() < lowest.get_y()) lowest = leftmost[i];
-    
-    return lowest;
-}
-
-// Tim diem leftmost lowest
-Point le_lo(vector<Point> points){
-    vector<Point> lowest;
-
-    float min_y = points[0].get_y();
+    float xmin = points[0].get_x();
+    float xmax = points[0].get_x();
+    float ymin = points[0].get_y();
+    float ymax = points[0].get_y();
 
     for (int i = 1; i < points.size(); i++)
-        if (points[i].get_y() < min_y) min_y = points[i].get_y();
+    {
+        if (points[i].get_x() < xmin)
+        {
+            xmin = points[i].get_x();
+            _8_extreme[0] = points[i];
+            _8_extreme[2] = points[i];
+        }
+        else if (points[i].get_x() > xmax)
+        {
+            xmax = points[i].get_x();
+            _8_extreme[4] = points[i];
+            _8_extreme[6] = points[i];
+        }
+        else if (points[i].get_x() == xmin)
+        {
+            if (points[i].get_y() > _8_extreme[0].get_y())
+                _8_extreme[0] = points[i];
+            if (points[i].get_y() < _8_extreme[2].get_y())
+                _8_extreme[2] = points[i];
+        }
+        else if (points[i].get_x() == xmax)
+        {
+            if (points[i].get_y() > _8_extreme[6].get_y())
+                _8_extreme[6] = points[i];
+            if (points[i].get_y() < _8_extreme[4].get_y())
+                _8_extreme[4] = points[i];
+        }
 
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_y() == min_y) lowest.push_back(points[i]);
+        if (points[i].get_y() > ymax)
+        {
+            ymax = points[i].get_y();
+            _8_extreme[1] = points[i];
+            _8_extreme[7] = points[i];
+        }
+        else if (points[i].get_y() < ymin)
+        {
+            ymin = points[i].get_y();
+            _8_extreme[3] = points[i];
+            _8_extreme[5] = points[i];
+        }
+        else if (points[i].get_y() == ymax)
+        {
+            if (points[i].get_x() > _8_extreme[7].get_x())
+                _8_extreme[7] = points[i];
+            if (points[i].get_x() < _8_extreme[1].get_x())
+                _8_extreme[1] = points[i];
+        }
+        else if (points[i].get_y() == ymin)
+        {
+            if (points[i].get_x() > _8_extreme[5].get_x())
+                _8_extreme[5] = points[i];
+            if (points[i].get_x() < _8_extreme[3].get_x())
+                _8_extreme[3] = points[i];
+        }
+    }
 
-    Point leftmost = lowest[0];
-    
-    for (int i = 1; i < lowest.size(); i++)
-        if (lowest[i].get_x() < leftmost.get_x()) leftmost = lowest[i];
-
-    return leftmost;
-}
-
-// Tim diem lowest rightmost
-Point lo_ri(vector<Point> points){
-    vector<Point> rightmost;
-
-    float max_x = points[0].get_x();
-
-    for (int i = 1; i < points.size(); i++)
-        if (points[i].get_x() > max_x) max_x = points[i].get_x();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_x() == max_x) rightmost.push_back(points[i]);
-
-    Point lowest = rightmost[0];
-
-    for (int i = 1; i < rightmost.size(); i++)
-        if (rightmost[i].get_y() < lowest.get_y()) lowest = rightmost[i];
-    
-    return lowest;
-}
-
-// Tim diem rightmost lowest
-Point ri_lo(vector<Point> points){
-    vector<Point> lowest;
-
-    float min_y = points[0].get_y();
-
-    for (int i = 1; i < points.size(); i++)
-        if (points[i].get_y() < min_y) min_y = points[i].get_y();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_y() == min_y) lowest.push_back(points[i]);
-
-    Point rightmost = lowest[0];
-    
-    for (int i = 1; i < lowest.size(); i++)
-        if (lowest[i].get_x() > rightmost.get_x()) rightmost = lowest[i];
-
-    return rightmost;
-}
-
-// Tim diem highest rightmost
-Point hi_ri(vector<Point> points){
-    vector<Point> rightmost;
-
-    float max_x = points[0].get_x();
-
-    for (int i = 1; i < points.size(); i++)
-        if (points[i].get_x() > max_x) max_x = points[i].get_x();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_x() == max_x) rightmost.push_back(points[i]);
-
-    Point highest = rightmost[0];
-
-    for (int i = 1; i < rightmost.size(); i++)
-        if (rightmost[i].get_y() > highest.get_y()) highest = rightmost[i];
-    
-    return highest;
-}
-
-// Tim diem rightmost highest
-Point ri_hi(vector<Point> points){
-    vector<Point> highest;
-
-    float max_y = points[0].get_y();
-
-    for (int i = 1; i < points.size(); i++)
-        if (points[i].get_y() > max_y) max_y = points[i].get_y();
-
-    for (int i = 0; i < points.size(); i++)
-        if (points[i].get_y() == max_y) highest.push_back(points[i]);
-
-    Point rightmost = highest[0];
-    
-    for (int i = 1; i < highest.size(); i++)
-        if (highest[i].get_x() > rightmost.get_x()) rightmost = highest[i];
-
-    return rightmost;
+    return _8_extreme;
 }
 
 // Noi hai vector lai voi nhau
 // Input: a b
 // Ouput: c = a + b
-vector<Point> plus_vector(vector<Point> set1, vector<Point> set2){
+vector<Point> plus_vector(vector<Point> set1, vector<Point> set2)
+{
     vector<Point> result;
     for (int i = 0; i < set1.size(); i++)
         result.push_back(set1[i]);
@@ -267,19 +197,22 @@ vector<Point> plus_vector(vector<Point> set1, vector<Point> set2){
     for (int i = 0; i < set2.size(); i++)
         result.push_back(set2[i]);
 
-    return result;   
+    return result;
 }
 
 // Kiem tra xem tap diem co hai diem trung nhau hay khong
 // Neu co, xoa diem trung
-void check(vector<Point>& points){
+void check(vector<Point> &points)
+{
     for (int i = 0; i < points.size(); i++)
         for (int j = i + 1; j < points.size(); j++)
-            if (points[i] == points[j]){
+            if (points[i] == points[j])
+            {
                 points.erase(points.begin() + j);
                 j--;
             }
 }
+
 // q1, qq1 phai dung dinh dang nhu trong li thuyet
 // q1.x > qq1.x; q1.y > qq1.y
 // q2.x < qq2.x; q2.y > qq2.y
@@ -291,37 +224,43 @@ void check(vector<Point>& points){
 //          convex_hull1: tap cac diem thuoc bao loi
 //          set1: tap cac diem thuoc mien
 // Ket qua cap nhat truc tiep vao convex_hull1
-void find_Convex_Hull1(Point q1, Point qq1, vector<Point>& convex_hull1, vector<Point> set1);
+void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<Point> set1);
 
 // Tuong tu mien 1
-void find_Convex_Hull2(Point q2, Point qq2, vector<Point>& convex_hull2, vector<Point> set2);
-void find_Convex_Hull3(Point q3, Point qq3, vector<Point>& convex_hull3, vector<Point> set3);
-void find_Convex_Hull4(Point q4, Point qq4, vector<Point>& convex_hull4, vector<Point> set4);
-
+void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<Point> set2);
+void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<Point> set3);
+void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<Point> set4);
 
 // Tim bao loi cua mot tap diem
 // Input: points: tap diem
 // Output: Vector chua cac diem thuoc bao loi
-vector<Point> find_Convex_Hull(vector<Point> points){
+vector<Point> find_Convex_Hull(vector<Point> points)
+{
     vector<Point> hull;
     hull.clear();
 
-    //Tim 8 diem dac biet cua tap diem
-    Point highest_leftmost = hi_le(points);                 // Convex_hull 1    
-    Point leftmost_highest = le_hi(points);
+    // Tim 8 diem dac biet cua tap diem
+    // Array[0]: highest-leftmost; Array[1]: leftmost-highest
+    // Array[2]: lowest-leftmost; Array[3]: leftmost-lowest
+    // Array[4]: lowest-rightmost; Array[5]: rightmost-lowest
+    // Array[6]: highest-rightmost; Array[7]: rightmost-highest
 
-    Point lowest_leftmost = lo_le(points);                  // Convex_hull 2
-    Point leftmost_lowest = le_lo(points);
+    vector<Point> _8_extreme = _8_extreme_point(points);
 
-    Point lowest_rightmost  = lo_ri(points);                // Convex_hull 3
-    Point rightmost_lowest = ri_lo(points);
+    Point highest_leftmost = _8_extreme[0]; // Convex_hull 1
+    Point leftmost_highest = _8_extreme[1];
 
-    Point highest_rightmost = hi_ri(points);                // Convex_hull 4
-    Point rightmost_highest = ri_hi(points);
-    
-    vector<Point> convex_hull1, convex_hull2
-                , convex_hull3, convex_hull4;               // Tap cac diem cuc bien 4 mien 
-    vector<Point> set1, set2, set3, set4;                   // Tap diem cua 4 mien do
+    Point lowest_leftmost = _8_extreme[2]; // Convex_hull 2
+    Point leftmost_lowest = _8_extreme[3];
+
+    Point lowest_rightmost = _8_extreme[4]; // Convex_hull 3
+    Point rightmost_lowest = _8_extreme[5];
+
+    Point highest_rightmost = _8_extreme[6]; // Convex_hull 4
+    Point rightmost_highest = _8_extreme[7];
+
+    vector<Point> convex_hull1, convex_hull2, convex_hull3, convex_hull4; // Tap cac diem cuc bien 4 mien
+    vector<Point> set1, set2, set3, set4;                                 // Tap diem cua 4 mien do
 
     convex_hull1.clear();
     convex_hull2.clear();
@@ -334,46 +273,52 @@ vector<Point> find_Convex_Hull(vector<Point> points){
     set4.clear();
 
     // TIM CAC DIEM CUA MOI MIEN
-    if (highest_leftmost == leftmost_highest) convex_hull1.push_back(highest_leftmost);
-    else {
+    if (highest_leftmost == leftmost_highest)
+        convex_hull1.push_back(highest_leftmost);
+    else
+    {
         convex_hull1.push_back(highest_leftmost);
         convex_hull1.push_back(leftmost_highest);
 
         for (int i = 0; i < points.size(); i++)
             if (points[i].is_inside(highest_leftmost, leftmost_highest))
-                set1.push_back(points[i]);    
-      
+                set1.push_back(points[i]);
     }
 
-    
-    if (lowest_leftmost == leftmost_lowest) convex_hull2.push_back(lowest_leftmost);
-    else {
+    if (lowest_leftmost == leftmost_lowest)
+        convex_hull2.push_back(lowest_leftmost);
+    else
+    {
         convex_hull2.push_back(lowest_leftmost);
         convex_hull2.push_back(leftmost_lowest);
 
         for (int i = 0; i < points.size(); i++)
             if (points[i].is_inside(lowest_leftmost, leftmost_lowest))
-                set2.push_back(points[i]);            
+                set2.push_back(points[i]);
     }
 
-    if (lowest_rightmost == rightmost_lowest) convex_hull3.push_back(lowest_rightmost);
-    else {
+    if (lowest_rightmost == rightmost_lowest)
+        convex_hull3.push_back(lowest_rightmost);
+    else
+    {
         convex_hull3.push_back(lowest_rightmost);
         convex_hull3.push_back(rightmost_lowest);
 
         for (int i = 0; i < points.size(); i++)
             if (points[i].is_inside(lowest_rightmost, rightmost_lowest))
-                set3.push_back(points[i]);            
+                set3.push_back(points[i]);
     }
 
-    if (highest_rightmost == rightmost_highest) convex_hull4.push_back(highest_rightmost);
-    else {
+    if (highest_rightmost == rightmost_highest)
+        convex_hull4.push_back(highest_rightmost);
+    else
+    {
         convex_hull4.push_back(highest_rightmost);
         convex_hull4.push_back(rightmost_highest);
 
         for (int i = 0; i < points.size(); i++)
             if (points[i].is_inside(highest_rightmost, rightmost_highest))
-                set4.push_back(points[i]);            
+                set4.push_back(points[i]);
     }
 
     // TIM CAC DIEM THUOC BAO LOI CUA 4 MIEN
@@ -382,24 +327,15 @@ vector<Point> find_Convex_Hull(vector<Point> points){
     find_Convex_Hull3(rightmost_lowest, lowest_rightmost, convex_hull3, set3);
     find_Convex_Hull4(highest_rightmost, rightmost_highest, convex_hull4, set4);
 
-    // LOAI CAC DIEM TRUNG NHAU
-    check(convex_hull1);
-    check(convex_hull2);
-    check(convex_hull3);
-    check(convex_hull4);
+    hull = plus_vector(plus_vector(plus_vector(convex_hull1, convex_hull2), convex_hull3), convex_hull4);
 
-    hull = plus_vector(plus_vector(plus_vector
-            (convex_hull1, convex_hull2), convex_hull3), convex_hull4);
-    
-    cout<<convex_hull1.size()<<" "<<convex_hull2.size()<<" "<<convex_hull3.size()
-        <<" "<<convex_hull4.size()<<"\n";
+    cout << convex_hull1.size() << " " << convex_hull2.size() << " " << convex_hull3.size()
+         << " " << convex_hull4.size() << "\n";
     return hull;
 }
 
-
-int main(int argc, char** argv){
-    clock_t start, end;
-    start = clock();
+int main(int argc, char **argv)
+{
 
     string input = argv[1];
     string output = argv[2];
@@ -413,119 +349,168 @@ int main(int argc, char** argv){
 
     string line;
 
-    while(getline(input_file, line)){
+    while (getline(input_file, line))
+    {
         fflush(stdin);
         Point point = to_Point(line);
         data.push_back(point);
     }
 
+    clock_t start, end;
+    start = clock();
+
     hull = find_Convex_Hull(data);
 
+    end = clock();
+    cout << "Thoi gian xu li: " << (end - start) / 1000.0 << "s\n";
+
     for (int i = 0; i < hull.size(); i++)
-        output_file << hull[i].get_x() <<", "<<hull[i].get_y()<<endl;
-    
+        output_file << hull[i].get_x() << ", " << hull[i].get_y() << endl;
+
     input_file.close();
     output_file.close();
 
-    end = clock();
-
-    cout<<"Thoi gian xu li: "<<(end - start)/1000.0<<"s\n";
+    
 
     return 0;
 }
 
-void find_Convex_Hull1(Point q1, Point qq1, vector<Point>& convex_hull1, vector<Point> set1){
-    check(convex_hull1);
-    if (set1.size() == 0) return;
-    else if (set1.size() == 1){
+void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<Point> set1)
+{
+    if (set1.size() == 0)
+        return;
+    else if (set1.size() == 1)
+    {
         convex_hull1.push_back(set1[0]);
         return;
     }
 
-    // Tim hai diem dac biet moi
+    Point root;
+    root.set_x(q1.get_x());
+    root.set_y(qq1.get_y());
 
-    Point new_q1 = le_hi(set1);
-    Point new_qq1 = hi_le(set1);
+    // Tim diem xa nhat
+    Point max = max_distance(set1, root);
+    convex_hull1.push_back(max);
 
-    convex_hull1.push_back(new_q1);
-    convex_hull1.push_back(new_qq1);
+    vector<Point> new_set_1;
+    vector<Point> new_set_2;
 
-    vector<Point> new_set;
-    new_set.clear();
-
-    // Tim cac diem thuoc mien moi
     for (int i = 0; i < set1.size(); i++)
-        if (set1[i].is_inside(new_q1, new_qq1)) new_set.push_back(set1[i]);
+    {
+        if (set1[i].is_inside(q1, max))
+            new_set_1.push_back(set1[i]);
+
+        if (set1[i].is_inside(max, qq1))
+            new_set_2.push_back(set1[i]);
+    }
 
     // De quy lai thuat toan
-    find_Convex_Hull1(new_q1, new_qq1, convex_hull1, new_set);
+    find_Convex_Hull1(q1, max, convex_hull1, new_set_1);
+    find_Convex_Hull1(max, qq1, convex_hull1, new_set_2);
 }
 
-void find_Convex_Hull2(Point q2, Point qq2, vector<Point>& convex_hull2, vector<Point> set2){
-    check(convex_hull2);
-    if (set2.size() == 0) return;
-    else if (set2.size() == 1){
+void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<Point> set2)
+{
+    if (set2.size() == 0)
+        return;
+    else if (set2.size() == 1)
+    {
         convex_hull2.push_back(set2[0]);
         return;
     }
 
-    Point new_q2 = lo_le(set2);
-    Point new_qq2 = le_lo(set2);
+    Point root;
+    root.set_x(qq2.get_x());
+    root.set_y(q2.get_y());
 
-    convex_hull2.push_back(new_q2);
-    convex_hull2.push_back(new_qq2);
+    // Tim diem xa nhat
+    Point max = max_distance(set2, root);
+    convex_hull2.push_back(max);
 
-    vector<Point> new_set;
-    new_set.clear();
+    vector<Point> new_set_1;
+    vector<Point> new_set_2;
 
     for (int i = 0; i < set2.size(); i++)
-        if (set2[i].is_inside(new_q2, new_qq2)) new_set.push_back(set2[i]);
+    {
+        if (set2[i].is_inside(q2, max))
+            new_set_1.push_back(set2[i]);
 
-    find_Convex_Hull2(new_q2, new_qq2, convex_hull2, new_set);
+        if (set2[i].is_inside(max, qq2))
+            new_set_2.push_back(set2[i]);
+    }
+
+    // De quy lai thuat toan
+    find_Convex_Hull2(q2, max, convex_hull2, new_set_1);
+    find_Convex_Hull2(max, qq2, convex_hull2, new_set_2);
 }
 
-void find_Convex_Hull3(Point q3, Point qq3, vector<Point>& convex_hull3, vector<Point> set3){
-    check(convex_hull3);
-    if (set3.size() == 0) return;
-    else if (set3.size() == 3){
+void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<Point> set3)
+{
+    if (set3.size() == 0)
+        return;
+    else if (set3.size() == 1)
+    {
         convex_hull3.push_back(set3[0]);
         return;
     }
 
-    Point new_q3 = ri_lo(set3);
-    Point new_qq3 = lo_ri(set3);
+    Point root;
+    root.set_x(q3.get_x());
+    root.set_y(qq3.get_y());
 
-    convex_hull3.push_back(new_q3);
-    convex_hull3.push_back(new_qq3);
+    // Tim diem xa nhat
+    Point max = max_distance(set3, root);
+    convex_hull3.push_back(max);
 
-    vector<Point> new_set;
-    new_set.clear();
+    vector<Point> new_set_1;
+    vector<Point> new_set_2;
 
     for (int i = 0; i < set3.size(); i++)
-        if (set3[i].is_inside(new_q3, new_qq3)) new_set.push_back(set3[i]);
+    {
+        if (set3[i].is_inside(q3, max))
+            new_set_1.push_back(set3[i]);
 
-    find_Convex_Hull3(new_q3, new_qq3, convex_hull3, new_set);
+        if (set3[i].is_inside(max, qq3))
+            new_set_2.push_back(set3[i]);
+    }
+
+    // De quy lai thuat toan
+    find_Convex_Hull3(q3, max, convex_hull3, new_set_1);
+    find_Convex_Hull3(max, qq3, convex_hull3, new_set_2);
 }
 
-void find_Convex_Hull4(Point q4, Point qq4, vector<Point>& convex_hull4, vector<Point> set4){
-    check(convex_hull4);
-    if (set4.size() == 0) return;
-    else if (set4.size() == 1){
+void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<Point> set4)
+{
+    if (set4.size() == 0)
+        return;
+    else if (set4.size() == 1)
+    {
         convex_hull4.push_back(set4[0]);
         return;
     }
 
-    Point new_q4 = hi_ri(set4);
-    Point new_qq4  = ri_hi(set4);
+    Point root;
+    root.set_x(qq4.get_x());
+    root.set_y(q4.get_y());
 
-    convex_hull4.push_back(new_q4);
-    convex_hull4.push_back(new_qq4);
+    // Tim diem xa nhat
+    Point max = max_distance(set4, root);
+    convex_hull4.push_back(max);
 
-    vector<Point> new_set;
-    new_set.clear();
+    vector<Point> new_set_1;
+    vector<Point> new_set_2;
 
     for (int i = 0; i < set4.size(); i++)
-        if (set4[i].is_inside(new_q4, new_qq4)) new_set.push_back(set4[i]);
+    {
+        if (set4[i].is_inside(q4, max))
+            new_set_1.push_back(set4[i]);
 
-    find_Convex_Hull4(new_q4, new_qq4, convex_hull4, new_set);
+        if (set4[i].is_inside(max, qq4))
+            new_set_2.push_back(set4[i]);
+    }
+
+    // De quy lai thuat toan
+    find_Convex_Hull4(q4, max, convex_hull4, new_set_1);
+    find_Convex_Hull4(max, qq4, convex_hull4, new_set_2);
 }
