@@ -9,8 +9,7 @@
 using namespace std;
 
 // Class bieu diem diem phang
-class Point
-{
+class Point {
     float x, y;
 
 public:
@@ -52,9 +51,123 @@ public:
     }
 };
 
+
 // Chuyen mot xau thanh cap diem x y
 // Vd: Input = "3.4, 2.7"
 // Output: (Point)(3.4;2.7)
+Point to_Point(string line);
+
+// Tinh binh phuong khoang cach giua hai diem
+float square_distance(Point p1, Point p2);
+
+// Tim diem co khoang cach lon nhat trong tap diem cho truoc so voi root
+Point max_distance(vector<Point> points, Point root);
+
+// Tim 8 diem cuc
+// Array[0]: highest-leftmost; Array[1]: leftmost-highest
+// Array[2]: lowest-leftmost; Array[3]: leftmost-lowest
+// Array[4]: lowest-rightmost; Array[5]: rightmost-lowest
+// Array[6]: highest-rightmost; Array[7]: rightmost-highest
+vector<Point> _8_extreme_point(vector<Point> points);
+
+// Noi hai vector lai voi nhau
+// Input: a b
+// Ouput: c = a + b
+vector<Point> plus_vector(vector<Point> set1, vector<Point> set2);
+
+// Kiem tra xem tap diem co hai diem trung nhau hay khong
+// Neu co, xoa diem trung
+void check(vector<Point> &points);
+
+// q1, qq1 phai dung dinh dang nhu trong li thuyet
+// q1.x > qq1.x; q1.y > qq1.y
+// q2.x < qq2.x; q2.y > qq2.y
+// q3.x < qq3.x; q3.y < qq3.y
+// q4.x > qq4.x; q4.y < qq4.y
+
+// Tim bao loi tren mien 1
+// Trong do q1, qq1: diem dac biet cua mien
+//          convex_hull1: tap cac diem thuoc bao loi
+//          set1: tap cac diem thuoc mien
+// Ket qua cap nhat truc tiep vao convex_hull1
+void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<Point> set1);
+
+// Tuong tu mien 1
+void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<Point> set2);
+void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<Point> set3);
+void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<Point> set4);
+
+// Tim bao loi cua mot tap diem
+// Input: points: tap diem
+// Output: Vector chua cac diem thuoc bao loi
+vector<Point> find_Convex_Hull(vector<Point> points, vector<Point> &convex_hull1, vector<Point> &convex_hull2, vector<Point> &convex_hull3, vector<Point> &convex_hull4);
+
+// Doc du lieu
+void readData(string input, vector<Point> &data);
+
+// Ghi du lieu
+void writeData(string output, vector<Point> hull);
+
+// Ham Main chinh
+int main(int argc, char **argv)
+{
+    // Doc du lieu tu file
+    string input = argv[1];
+    vector<Point> data;
+    readData(input, data);
+
+    // Khoi tao vector chua bao loi
+    vector<Point> hull, convex_hull1, convex_hull2, convex_hull3, convex_hull4;
+    hull.clear(); 
+
+    // Thuc hien dem thoi gian va thuc thi thuat toan O-Quickhull
+    clock_t start, end;
+    start = clock();
+
+    hull = find_Convex_Hull(data, convex_hull1, convex_hull2, convex_hull3, convex_hull4);
+
+    end = clock();
+    cout << "Thoi gian xu li: " << (end - start) / 1000.0 << "s\n";
+
+    // Ghi du lieu ra file
+    string output = argv[2];
+    writeData(output, hull);
+    
+    // GHI DU LIEU CUA 4 TAP RA 4 FILE
+    writeData("convex_hull1.csv", convex_hull1);
+    writeData("convex_hull2.csv", convex_hull2);
+    writeData("convex_hull3.csv", convex_hull3);
+    writeData("convex_hull4.csv", convex_hull4);
+
+    return 0;
+}
+
+// Doc du lieu
+void readData(string input, vector<Point> &data){
+    data.clear();
+    ifstream input_file(input);
+
+    string line;
+
+    while (getline(input_file, line))
+    {
+        fflush(stdin);
+        Point point = to_Point(line);
+        data.push_back(point);
+    }
+    input_file.close();
+}
+
+// Ghi du lieu
+void writeData(string output, vector<Point> hull) {
+    ofstream output_file(output);
+
+    for (int i = 0; i < hull.size(); i++)
+        output_file << hull[i].get_x() << ", " << hull[i].get_y() << endl;
+    
+    output_file.close();
+}
+
 Point to_Point(string line)
 {
     int i = 0;
@@ -87,33 +200,6 @@ Point to_Point(string line)
     return convert;
 }
 
-float square_distance(Point p1, Point p2)
-{
-    return float(pow(p1.get_x() - p2.get_x(), 2) + pow(p1.get_y() - p2.get_y(), 2));
-}
-
-Point max_distance(vector<Point> points, Point root)
-{
-    Point max = points[0];
-    float _max_distance = square_distance(points[0], root);
-
-    for (int i = 1; i < points.size(); i++)
-    {
-        float distance = square_distance(points[i], root);
-        if (distance > _max_distance)
-        {
-            _max_distance = distance;
-            max = points[i];
-        }
-    }
-    return max;
-}
-
-// Tim 8 diem cuc
-// Array[0]: highest-leftmost; Array[1]: leftmost-highest
-// Array[2]: lowest-leftmost; Array[3]: leftmost-lowest
-// Array[4]: lowest-rightmost; Array[5]: rightmost-lowest
-// Array[6]: highest-rightmost; Array[7]: rightmost-highest
 vector<Point> _8_extreme_point(vector<Point> points)
 {
     vector<Point> _8_extreme;
@@ -185,9 +271,28 @@ vector<Point> _8_extreme_point(vector<Point> points)
     return _8_extreme;
 }
 
-// Noi hai vector lai voi nhau
-// Input: a b
-// Ouput: c = a + b
+float square_distance(Point p1, Point p2)
+{
+    return float(pow(p1.get_x() - p2.get_x(), 2) + pow(p1.get_y() - p2.get_y(), 2));
+}
+
+Point max_distance(vector<Point> points, Point root)
+{
+    Point max = points[0];
+    float _max_distance = square_distance(points[0], root);
+
+    for (int i = 1; i < points.size(); i++)
+    {
+        float distance = square_distance(points[i], root);
+        if (distance > _max_distance)
+        {
+            _max_distance = distance;
+            max = points[i];
+        }
+    }
+    return max;
+}
+
 vector<Point> plus_vector(vector<Point> set1, vector<Point> set2)
 {
     vector<Point> result;
@@ -200,8 +305,6 @@ vector<Point> plus_vector(vector<Point> set1, vector<Point> set2)
     return result;
 }
 
-// Kiem tra xem tap diem co hai diem trung nhau hay khong
-// Neu co, xoa diem trung
 void check(vector<Point> &points)
 {
     for (int i = 0; i < points.size(); i++)
@@ -213,28 +316,7 @@ void check(vector<Point> &points)
             }
 }
 
-// q1, qq1 phai dung dinh dang nhu trong li thuyet
-// q1.x > qq1.x; q1.y > qq1.y
-// q2.x < qq2.x; q2.y > qq2.y
-// q3.x < qq3.x; q3.y < qq3.y
-// q4.x > qq4.x; q4.y < qq4.y
-
-// Tim bao loi tren mien 1
-// Trong do q1, qq1: diem dac biet cua mien
-//          convex_hull1: tap cac diem thuoc bao loi
-//          set1: tap cac diem thuoc mien
-// Ket qua cap nhat truc tiep vao convex_hull1
-void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<Point> set1);
-
-// Tuong tu mien 1
-void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<Point> set2);
-void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<Point> set3);
-void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<Point> set4);
-
-// Tim bao loi cua mot tap diem
-// Input: points: tap diem
-// Output: Vector chua cac diem thuoc bao loi
-vector<Point> find_Convex_Hull(vector<Point> points)
+vector<Point> find_Convex_Hull(vector<Point> points, vector<Point> &convex_hull1, vector<Point> &convex_hull2, vector<Point> &convex_hull3, vector<Point> &convex_hull4)
 {
     vector<Point> hull;
     hull.clear();
@@ -259,8 +341,7 @@ vector<Point> find_Convex_Hull(vector<Point> points)
     Point highest_rightmost = _8_extreme[6]; // Convex_hull 4
     Point rightmost_highest = _8_extreme[7];
 
-    vector<Point> convex_hull1, convex_hull2, convex_hull3, convex_hull4; // Tap cac diem cuc bien 4 mien
-    vector<Point> set1, set2, set3, set4;                                 // Tap diem cua 4 mien do
+    vector<Point> set1, set2, set3, set4; // Tap cac diem 4 mien
 
     convex_hull1.clear();
     convex_hull2.clear();
@@ -273,16 +354,13 @@ vector<Point> find_Convex_Hull(vector<Point> points)
     set4.clear();
 
     // TIM CAC DIEM CUA MOI MIEN
+    
     if (highest_leftmost == leftmost_highest)
         convex_hull1.push_back(highest_leftmost);
     else
     {
         convex_hull1.push_back(highest_leftmost);
         convex_hull1.push_back(leftmost_highest);
-
-        for (int i = 0; i < points.size(); i++)
-            if (points[i].is_inside(highest_leftmost, leftmost_highest))
-                set1.push_back(points[i]);
     }
 
     if (lowest_leftmost == leftmost_lowest)
@@ -291,10 +369,6 @@ vector<Point> find_Convex_Hull(vector<Point> points)
     {
         convex_hull2.push_back(lowest_leftmost);
         convex_hull2.push_back(leftmost_lowest);
-
-        for (int i = 0; i < points.size(); i++)
-            if (points[i].is_inside(lowest_leftmost, leftmost_lowest))
-                set2.push_back(points[i]);
     }
 
     if (lowest_rightmost == rightmost_lowest)
@@ -303,10 +377,6 @@ vector<Point> find_Convex_Hull(vector<Point> points)
     {
         convex_hull3.push_back(lowest_rightmost);
         convex_hull3.push_back(rightmost_lowest);
-
-        for (int i = 0; i < points.size(); i++)
-            if (points[i].is_inside(lowest_rightmost, rightmost_lowest))
-                set3.push_back(points[i]);
     }
 
     if (highest_rightmost == rightmost_highest)
@@ -315,11 +385,17 @@ vector<Point> find_Convex_Hull(vector<Point> points)
     {
         convex_hull4.push_back(highest_rightmost);
         convex_hull4.push_back(rightmost_highest);
-
-        for (int i = 0; i < points.size(); i++)
-            if (points[i].is_inside(highest_rightmost, rightmost_highest))
-                set4.push_back(points[i]);
     }
+
+    for (int i = 0; i < points.size(); i++) 
+        if (points[i].get_x() < leftmost_highest.get_x() && points[i].get_y() > highest_leftmost.get_y())
+            set1.push_back(points[i]);
+        else if (points[i].get_x() < leftmost_lowest.get_x() && points[i].get_y() < lowest_leftmost.get_y())
+            set2.push_back(points[i]);
+        else if (points[i].get_x() > rightmost_lowest.get_x() && points[i].get_y() < lowest_rightmost.get_y())
+            set3.push_back(points[i]);
+        else if (points[i].get_x() > rightmost_highest.get_x() && points[i].get_y() > highest_rightmost.get_y())
+            set4.push_back(points[i]);
 
     // TIM CAC DIEM THUOC BAO LOI CUA 4 MIEN
     find_Convex_Hull1(leftmost_highest, highest_leftmost, convex_hull1, set1);
@@ -334,46 +410,6 @@ vector<Point> find_Convex_Hull(vector<Point> points)
     return hull;
 }
 
-int main(int argc, char **argv)
-{
-
-    string input = argv[1];
-    string output = argv[2];
-
-    ifstream input_file(input);
-    ofstream output_file(output);
-
-    vector<Point> data, hull;
-    data.clear();
-    hull.clear();
-
-    string line;
-
-    while (getline(input_file, line))
-    {
-        fflush(stdin);
-        Point point = to_Point(line);
-        data.push_back(point);
-    }
-
-    clock_t start, end;
-    start = clock();
-
-    hull = find_Convex_Hull(data);
-
-    end = clock();
-    cout << "Thoi gian xu li: " << (end - start) / 1000.0 << "s\n";
-
-    for (int i = 0; i < hull.size(); i++)
-        output_file << hull[i].get_x() << ", " << hull[i].get_y() << endl;
-
-    input_file.close();
-    output_file.close();
-
-    
-
-    return 0;
-}
 
 void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<Point> set1)
 {
