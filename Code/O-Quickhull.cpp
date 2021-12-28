@@ -326,7 +326,6 @@ vector<Point> find_Convex_Hull(vector<Point> points, vector<Point> &convex_hull1
     // Array[2]: lowest-leftmost; Array[3]: leftmost-lowest
     // Array[4]: lowest-rightmost; Array[5]: rightmost-lowest
     // Array[6]: highest-rightmost; Array[7]: rightmost-highest
-
     vector<Point> _8_extreme = _8_extreme_point(points);
 
     Point highest_leftmost = _8_extreme[0]; // Convex_hull 1

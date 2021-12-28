@@ -40,7 +40,7 @@ public:
     }
 
     void print_Point() {
-        cout << "(" << this->x << "," << this->y << ") ";
+        std::cout << "(" << this->x << "," << this->y << ") ";
     }
 
     bool operator==(Point other) {
@@ -128,7 +128,7 @@ int main(int argc, char **argv)
     hull = find_Convex_Hull(data, convex_hull1, convex_hull2, convex_hull3, convex_hull4);
 
     end = clock();
-    cout << "Thoi gian xu li: " << (end - start) / 1000.0 << "s\n";
+    std::cout << "Thoi gian xu li: " << (end - start) / 1000.0 << "s\n";
 
     // Ghi du lieu ra file
     string output = argv[2];
@@ -216,7 +216,6 @@ vector<Point> _8_extreme_point(vector<Point> points)
     #pragma omp parallel 
     {
         #pragma omp for nowait 
-        {
             for (int i = 1; i < points.size(); i++)
             {
                 if (points[i].get_x() < xmin)
@@ -273,7 +272,6 @@ vector<Point> _8_extreme_point(vector<Point> points)
                         _8_extreme[3] = points[i];
                 }
             }
-        }
     }
 
     return _8_extreme;
@@ -292,7 +290,6 @@ Point max_distance(vector<Point> points, Point root)
     #pragma omp parallel 
     {
         #pragma omp for nowait
-        {
             for (int i = 1; i < points.size(); i++)
             {
                 float distance = square_distance(points[i], root);
@@ -302,7 +299,6 @@ Point max_distance(vector<Point> points, Point root)
                     max = points[i];
                 }
             }
-        }
     }
     return max;
 }
@@ -407,39 +403,47 @@ vector<Point> find_Convex_Hull(vector<Point> points, vector<Point> &convex_hull1
 
     #pragma omp parallel 
     {
+        // cout<<omp_get_num_threads()<<endl;
         #pragma omp for nowait
-        {
-            for (int i = 0; i < points.size(); i++) 
-                if (points[i].get_x() < leftmost_highest.get_x() && points[i].get_y() > highest_leftmost.get_y())
-                    set1.push_back(points[i]);
-                else if (points[i].get_x() < leftmost_lowest.get_x() && points[i].get_y() < lowest_leftmost.get_y())
-                    set2.push_back(points[i]);
-                else if (points[i].get_x() > rightmost_lowest.get_x() && points[i].get_y() < lowest_rightmost.get_y())
-                    set3.push_back(points[i]);
-                else if (points[i].get_x() > rightmost_highest.get_x() && points[i].get_y() > highest_rightmost.get_y())
-                    set4.push_back(points[i]);
-        }
+            for (int i = 0; i < 8; i++) printf("(%d, %d) ", i, omp_get_thread_num());
+                // if (points[i].get_x() < leftmost_highest.get_x() && points[i].get_y() > highest_leftmost.get_y())
+                //     set1.push_back(points[i]);
+                // else if (points[i].get_x() < leftmost_lowest.get_x() && points[i].get_y() < lowest_leftmost.get_y())
+                //     set2.push_back(points[i]);
+                // else if (points[i].get_x() > rightmost_lowest.get_x() && points[i].get_y() < lowest_rightmost.get_y())
+                //     set3.push_back(points[i]);
+                // else if (points[i].get_x() > rightmost_highest.get_x() && points[i].get_y() > highest_rightmost.get_y())
+                //     set4.push_back(points[i]);
     }
+    cout<<endl;
 
-    // TIM CAC DIEM THUOC BAO LOI CUA 4 MIEN
-    #pragma omp parallel
-    {
-        #pragma omp sections 
-        {
-            #pragma omp section 
-                find_Convex_Hull1(leftmost_highest, highest_leftmost, convex_hull1, set1);
-            #pragma omp section
-                find_Convex_Hull2(lowest_leftmost, leftmost_lowest, convex_hull2, set2);
-            #pragma omp section
-                find_Convex_Hull3(rightmost_lowest, lowest_rightmost, convex_hull3, set3);
-            #pragma omp section
-                find_Convex_Hull4(highest_rightmost, rightmost_highest, convex_hull4, set4);
-        }
-    }
+    // // TIM CAC DIEM THUOC BAO LOI CUA 4 MIEN
+    // #pragma omp parallel
+    // {
+    //     #pragma omp sections 
+    //     {
+    //         #pragma omp section
+    //         { 
+    //             find_Convex_Hull1(leftmost_highest, highest_leftmost, convex_hull1, set1);
+    //         }
+    //         #pragma omp section
+    //         {
+    //             find_Convex_Hull2(lowest_leftmost, leftmost_lowest, convex_hull2, set2);
+    //         }
+    //         #pragma omp section
+    //         {
+    //             find_Convex_Hull3(rightmost_lowest, lowest_rightmost, convex_hull3, set3);
+    //         }
+    //         #pragma omp section
+    //         {
+    //             find_Convex_Hull4(highest_rightmost, rightmost_highest, convex_hull4, set4);
+    //         }
+    //     }
+    // }
 
     hull = plus_vector(plus_vector(plus_vector(convex_hull1, convex_hull2), convex_hull3), convex_hull4);
 
-    cout << convex_hull1.size() << " " << convex_hull2.size() << " " << convex_hull3.size()
+    std::cout << convex_hull1.size() << " " << convex_hull2.size() << " " << convex_hull3.size()
          << " " << convex_hull4.size() << "\n";
     return hull;
 }
@@ -468,7 +472,6 @@ void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<
     #pragma omp parallel 
     {
         #pragma omp for nowait
-        {
             for (int i = 0; i < set1.size(); i++)
             {
                 if (set1[i].is_inside(q1, max))
@@ -477,7 +480,6 @@ void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<
                 if (set1[i].is_inside(max, qq1))
                     new_set_2.push_back(set1[i]);
             }
-        }
     }
 
     // De quy lai thuat toan
@@ -486,9 +488,13 @@ void find_Convex_Hull1(Point q1, Point qq1, vector<Point> &convex_hull1, vector<
         #pragma omp sections
         {
             #pragma omp section
+            {
                 find_Convex_Hull1(q1, max, convex_hull1, new_set_1);
+            }
             #pragma omp section
+            {
                 find_Convex_Hull1(max, qq1, convex_hull1, new_set_2);
+            }
         }
     }
 }
@@ -517,7 +523,6 @@ void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<
     #pragma omp parallel 
     {
         #pragma omp for nowait
-        {
             for (int i = 0; i < set2.size(); i++)
             {
                 if (set2[i].is_inside(q2, max))
@@ -526,7 +531,6 @@ void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<
                 if (set2[i].is_inside(max, qq2))
                     new_set_2.push_back(set2[i]);
             }
-        }
     }
 
     // De quy lai thuat toan
@@ -535,9 +539,13 @@ void find_Convex_Hull2(Point q2, Point qq2, vector<Point> &convex_hull2, vector<
         #pragma omp sections
         {
             #pragma omp section
+            {
                 find_Convex_Hull2(q2, max, convex_hull2, new_set_1);
+            }
             #pragma omp section
+            {
                 find_Convex_Hull2(max, qq2, convex_hull2, new_set_2);
+            }
         }
     }
 }
@@ -566,7 +574,6 @@ void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<
     #pragma omp parallel 
     {
         #pragma omp for nowait
-        {
             for (int i = 0; i < set3.size(); i++)
             {
                 if (set3[i].is_inside(q3, max))
@@ -575,7 +582,6 @@ void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<
                 if (set3[i].is_inside(max, qq3))
                     new_set_2.push_back(set3[i]);
             }
-        }
     }
 
     // De quy lai thuat toan
@@ -584,9 +590,13 @@ void find_Convex_Hull3(Point q3, Point qq3, vector<Point> &convex_hull3, vector<
         #pragma omp sections
         {
             #pragma omp section
+            {
                 find_Convex_Hull3(q3, max, convex_hull3, new_set_1);
+            }
             #pragma omp section
+            {
                 find_Convex_Hull3(max, qq3, convex_hull3, new_set_2);
+            }
         }
     }
 }
@@ -615,7 +625,6 @@ void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<
     #pragma omp parallel 
     {
         #pragma omp for nowait
-        {
             for (int i = 0; i < set4.size(); i++)
             {
                 if (set4[i].is_inside(q4, max))
@@ -624,7 +633,6 @@ void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<
                 if (set4[i].is_inside(max, qq4))
                     new_set_2.push_back(set4[i]);
             }
-        }
     }
 
     // De quy lai thuat toan
@@ -633,9 +641,13 @@ void find_Convex_Hull4(Point q4, Point qq4, vector<Point> &convex_hull4, vector<
         #pragma omp sections
         {
             #pragma omp section
+            {
                 find_Convex_Hull4(q4, max, convex_hull4, new_set_1);
+            }
             #pragma omp section
+            {
                 find_Convex_Hull4(max, qq4, convex_hull4, new_set_2);
+            }
         }
     }
 }

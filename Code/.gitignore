@@ -3,6 +3,7 @@
 # execution file
 O-Quickhull.exe
 O-Quickhull_parallel.exe 
+penmp.exe
 
 # data files
 result.csv
